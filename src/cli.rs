@@ -32,13 +32,15 @@ pub enum OutputType {
 }
 
 #[derive(Debug, Args)]
+#[group(required = true, id = "input_source")]
 pub struct InputArgs {
-    #[arg(long, conflicts_with = "stdin")]
+    #[arg(long, conflicts_with = "stdin", group = "input_source")]
     pub file: Option<PathBuf>,
 
-    #[arg(long, conflicts_with = "file")]
+    #[arg(long, conflicts_with = "file", group = "input_source")]
     pub stdin: bool,
 
+    /// 標準入力使用時に必須。入力形式を指定する。
     #[arg(long, value_enum, required_if_eq("stdin", "true"))]
     pub r#type: Option<InputType>,
 }
@@ -117,6 +119,12 @@ mod tests {
             }
             _ => panic!("expected Convert"),
         }
+    }
+
+    #[test]
+    fn cli_schema_requires_file_or_stdin() {
+        let result = Cli::try_parse_from(["tabstruct", "schema"]);
+        assert!(result.is_err(), "schema without --file or --stdin must fail");
     }
 }
 
