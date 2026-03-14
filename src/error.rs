@@ -5,6 +5,9 @@ pub enum TabstructError {
     #[error("Either --file or --stdin must be specified")]
     MissingInput,
 
+    #[error("Exactly one of --json, --yaml, or --csv must be specified for convert")]
+    MissingOutputFormat,
+
     #[error("Unsupported file extension: {extension}")]
     UnsupportedExtension { extension: String },
 
