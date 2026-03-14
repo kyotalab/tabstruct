@@ -1,3 +1,4 @@
+use crate::error::TabstructError;
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
 
@@ -16,14 +17,14 @@ pub enum Command {
     Convert(ConvertArgs),
 }
 
-#[derive(Debug, Clone, Copy, ValueEnum)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 pub enum InputType {
     Csv,
     Json,
     Yaml,
 }
 
-#[derive(Debug, Clone, Copy, ValueEnum)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 pub enum OutputType {
     Csv,
     Json,
@@ -61,12 +62,60 @@ pub struct ConvertArgs {
 }
 
 impl ConvertArgs {
-    pub fn output_type(&self) -> OutputType {
+    /// 出力形式を返す。いずれか1つのみ指定されている場合に Some を返す。
+    pub fn output_type(&self) -> Option<OutputType> {
         match (self.json, self.yaml, self.csv) {
-            (true, false, false) => OutputType::Json,
-            (false, true, false) => OutputType::Yaml,
-            (false, false, true) => OutputType::Csv,
-            _ => unreachable!("clap guarantees exactly one output flag"),
+            (true, false, false) => Some(OutputType::Json),
+            (false, true, false) => Some(OutputType::Yaml),
+            (false, false, true) => Some(OutputType::Csv),
+            _ => None,
+        }
+    }
+
+    /// 出力形式を取得する。未指定の場合は MissingOutputFormat を返す。
+    pub fn require_output_type(&self) -> Result<OutputType, TabstructError> {
+        self.output_type()
+            .ok_or(TabstructError::MissingOutputFormat)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cli_parse_schema_with_file() {
+        let cli = Cli::parse_from(["tabstruct", "schema", "--file", "sample.csv"]);
+        match &cli.command {
+            Command::Schema(args) => {
+                assert!(args.file.as_ref().unwrap().to_str().unwrap() == "sample.csv");
+                assert!(!args.stdin);
+            }
+            _ => panic!("expected Schema"),
+        }
+    }
+
+    #[test]
+    fn cli_parse_convert_with_output_format() {
+        let cli = Cli::parse_from(["tabstruct", "convert", "--file", "x.csv", "--json"]);
+        match &cli.command {
+            Command::Convert(args) => {
+                assert!(args.output_type() == Some(OutputType::Json));
+                assert!(args.require_output_type().is_ok());
+            }
+            _ => panic!("expected Convert"),
+        }
+    }
+
+    #[test]
+    fn cli_convert_requires_one_output_format() {
+        let cli = Cli::parse_from(["tabstruct", "convert", "--file", "x.csv"]);
+        match &cli.command {
+            Command::Convert(args) => {
+                assert!(args.output_type().is_none());
+                assert!(args.require_output_type().is_err());
+            }
+            _ => panic!("expected Convert"),
         }
     }
 }
