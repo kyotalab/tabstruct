@@ -1,10 +1,4 @@
-use crate::model::InputFormat;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum RootType {
-    Object,
-    Array,
-}
+use crate::model::{InputFormat, RootType};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DisplayType {

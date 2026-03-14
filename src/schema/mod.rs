@@ -1,5 +1,6 @@
 pub mod analyze;
 pub mod types;
 
-pub use types::{DisplayType, PrimitiveKind, RootType, SchemaField, SchemaReport};
+pub use crate::model::RootType;
+pub use types::{DisplayType, PrimitiveKind, SchemaField, SchemaReport};
 

@@ -18,6 +18,13 @@ pub enum InputFormat {
     Yaml,
 }
 
+/// ルートのデータ形状（object または array）
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RootType {
+    Object,
+    Array,
+}
+
 #[derive(Debug, Clone)]
 pub struct Document {
     pub format: InputFormat,
