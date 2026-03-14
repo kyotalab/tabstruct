@@ -1,6 +1,8 @@
 use crate::cli::{Cli, Command, ConvertArgs, InputArgs};
 use crate::error::TabstructError;
 use crate::io;
+use crate::parser;
+use crate::schema;
 use clap::Parser;
 use std::path::Path;
 
@@ -13,13 +15,16 @@ pub fn run() -> Result<(), TabstructError> {
     }
 }
 
-/// schema コマンド: 入力取得・形式判定まで実施。パース・解析・表示は後続単位で実装。
+/// schema コマンド: 入力取得・形式判定・パース・解析・表示。JSON/YAML 対応。CSV は未対応。
 fn run_schema(args: InputArgs) -> Result<(), TabstructError> {
     let input = io::read_input(&args)?;
     let path_for_format = input.path.as_deref().map(Path::new);
-    let _format = io::detect_input_format(&args, path_for_format)?;
-    // パース・schema 解析・formatter は後続単位で実装
-    todo!("schema: parse document and format output");
+    let format = io::detect_input_format(&args, path_for_format)?;
+    let doc = parser::parse_document(format, &input.content)?;
+    let report = schema::analyze(&doc)?;
+    let text = crate::formatter::format_schema_report(&report);
+    io::write_stdout(&text)?;
+    Ok(())
 }
 
 /// convert コマンド: 入力取得・形式判定まで実施。パース・変換・出力は後続単位で実装。
