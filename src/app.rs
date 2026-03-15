@@ -31,12 +31,24 @@ fn get_document(format: InputFormat, content: &str) -> Result<Document, Tabstruc
 }
 
 /// schema コマンド: 入力取得・形式判定・パース・解析・表示。CSV/JSON/YAML 対応。
+/// CSV のときは TypedCsvTable からヘッダ順・列型で schema を生成し、JSON/YAML のときは Document から解析する。
 fn run_schema(args: InputArgs) -> Result<(), TabstructError> {
     let input = io::read_input(&args)?;
     let path_for_format = input.path.as_deref().map(Path::new);
     let format = io::detect_input_format(&args, path_for_format)?;
-    let doc = get_document(format, &input.content)?;
-    let report = schema::analyze(&doc)?;
+
+    let report = match format {
+        crate::model::InputFormat::Csv => {
+            let raw = parser::csv::parse_csv(&input.content)?;
+            let typed = parser::csv::raw_to_typed(raw)?;
+            schema::analyze_csv(&typed)
+        }
+        crate::model::InputFormat::Json | crate::model::InputFormat::Yaml => {
+            let doc = get_document(format, &input.content)?;
+            schema::analyze(&doc)?
+        }
+    };
+
     let text = crate::formatter::format_schema_report(&report);
     io::write_stdout(&text)?;
     Ok(())
