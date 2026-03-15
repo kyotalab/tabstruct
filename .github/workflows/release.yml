@@ -39,15 +39,28 @@ jobs:
         run: rustup target add ${{ matrix.target }}
 
       - name: Build release
-        run: cargo build --release
+        shell: bash
+        run: |
+          if [ -n "${{ matrix.target }}" ]; then
+            cargo build --release --target ${{ matrix.target }}
+          else
+            cargo build --release
+          fi
 
       - name: Prepare archive (Unix)
         if: matrix.archive == 'tar.gz'
+        shell: bash
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
-          TARGET=$(rustc -vV | grep host | cut -d' ' -f2)
+          if [ -n "${{ matrix.target }}" ]; then
+            TARGET="${{ matrix.target }}"
+            BIN="target/${TARGET}/release/tabstruct"
+          else
+            TARGET=$(rustc -vV | grep host | cut -d' ' -f2)
+            BIN="target/release/tabstruct${{ matrix.suffix }}"
+          fi
           mkdir -p release
-          cp target/release/tabstruct${{ matrix.suffix }} release/
+          cp "$BIN" release/
           tar czvf "tabstruct-${VERSION}-${TARGET}.tar.gz" -C release .
 
       - name: Prepare archive (Windows)
@@ -86,6 +99,15 @@ jobs:
             echo "$(sha256sum "$f" | cut -d' ' -f1)  $(basename "$f")" >> SHA256SUMS
           done
           cat SHA256SUMS
+
+      - name: Gather release assets
+        run: |
+          mkdir -p release-assets
+          cp artifacts/ubuntu-latest/*.tar.gz release-assets/
+          cp artifacts/macos-x86_64/*.tar.gz release-assets/
+          cp artifacts/windows-latest/*.zip release-assets/
+          cp SHA256SUMS release-assets/
+          ls -la release-assets/
 
       - name: Upload Release assets (binaries + SHA256SUMS)
         uses: softprops/action-gh-release@v2
