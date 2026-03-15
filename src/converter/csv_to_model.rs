@@ -57,7 +57,6 @@ fn row_to_object(
     let mut root = BTreeMap::new();
     for (header, value) in headers.iter().zip(row.iter()) {
         let segments: Vec<&str> = header.split('.').collect();
-        let segments: Vec<&str> = segments.iter().map(|s| *s).collect();
         insert_path(&mut root, &segments, value.clone())?;
     }
     Ok(root)

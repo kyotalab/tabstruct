@@ -176,7 +176,7 @@ pub fn column_has_nullable(column_index: usize, raw: &RawCsvTable) -> bool {
     }
     raw.rows
         .iter()
-        .any(|row| row.get(column_index).map_or(true, |s| s.is_empty()))
+        .any(|row| row.get(column_index).is_none_or(|s| s.is_empty()))
 }
 
 /// 列型 + nullable を DisplayType に変換する。
