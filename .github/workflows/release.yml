@@ -14,12 +14,23 @@ jobs:
           - os: ubuntu-latest
             suffix: ''
             archive: tar.gz
+            target: ''
+            artifact_name: ubuntu-latest
           - os: macos-latest
             suffix: ''
             archive: tar.gz
+            target: x86_64-apple-darwin
+            artifact_name: macos-x86_64
+          - os: macos-latest
+            suffix: ''
+            archive: tar.gz
+            target: aarch64-apple-darwin
+            artifact_name: macos-aarch64
           - os: windows-latest
             suffix: .exe
             archive: zip
+            target: ''
+            artifact_name: windows-latest
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -28,16 +39,31 @@ jobs:
       - name: Install Rust (stable)
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Add target (macOS)
+        if: matrix.target != ''
+        run: rustup target add ${{ matrix.target }}
+
       - name: Build release
-        run: cargo build --release
+        run: |
+          if [ -n "${{ matrix.target }}" ]; then
+            cargo build --release --target ${{ matrix.target }}
+          else
+            cargo build --release
+          fi
 
       - name: Prepare archive (Unix)
         if: matrix.archive == 'tar.gz'
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
-          TARGET=$(rustc -vV | grep host | cut -d' ' -f2)
+          if [ -n "${{ matrix.target }}" ]; then
+            TARGET="${{ matrix.target }}"
+            BIN="target/$TARGET/release/tabstruct"
+          else
+            TARGET=$(rustc -vV | grep host | cut -d' ' -f2)
+            BIN="target/release/tabstruct${{ matrix.suffix }}"
+          fi
           mkdir -p release
-          cp target/release/tabstruct${{ matrix.suffix }} release/
+          cp "$BIN" release/
           tar czvf "tabstruct-${VERSION}-${TARGET}.tar.gz" -C release .
 
       - name: Prepare archive (Windows)
@@ -53,7 +79,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os }}
+          name: ${{ matrix.artifact_name }}
           path: ${{ matrix.archive == 'tar.gz' && 'tabstruct-*.tar.gz' || 'tabstruct-*.zip' }}
 
   release:
@@ -70,7 +96,9 @@ jobs:
       - name: Generate SHA256SUMS (macOS & Linux)
         run: |
           echo "# SHA256 for macOS and Linux binaries (Homebrew etc.)" > SHA256SUMS
-          for f in artifacts/ubuntu-latest/*.tar.gz artifacts/macos-latest/*.tar.gz; do
+          for f in artifacts/ubuntu-latest/*.tar.gz \
+                   artifacts/macos-x86_64/*.tar.gz \
+                   artifacts/macos-aarch64/*.tar.gz; do
             [ -f "$f" ] || continue
             echo "$(sha256sum "$f" | cut -d' ' -f1)  $(basename "$f")" >> SHA256SUMS
           done
@@ -81,7 +109,8 @@ jobs:
         with:
           files: |
             artifacts/ubuntu-latest/*
-            artifacts/macos-latest/*
+            artifacts/macos-x86_64/*
+            artifacts/macos-aarch64/*
             artifacts/windows-latest/*
             SHA256SUMS
           generate_release_notes: true
