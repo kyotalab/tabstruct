@@ -44,13 +44,7 @@ jobs:
         run: rustup target add ${{ matrix.target }}
 
       - name: Build release
-        shell: bash
-        run: |
-          if [ -n "${{ matrix.target }}" ]; then
-            cargo build --release --target ${{ matrix.target }}
-          else
-            cargo build --release
-          fi
+        run: cargo build --release
 
       - name: Prepare archive (Unix)
         if: matrix.archive == 'tar.gz'
