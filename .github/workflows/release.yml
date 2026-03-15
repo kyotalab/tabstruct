@@ -50,15 +50,9 @@ jobs:
         if: matrix.archive == 'tar.gz'
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
-          if [ -n "${{ matrix.target }}" ]; then
-            TARGET="${{ matrix.target }}"
-            BIN="target/$TARGET/release/tabstruct"
-          else
-            TARGET=$(rustc -vV | grep host | cut -d' ' -f2)
-            BIN="target/release/tabstruct${{ matrix.suffix }}"
-          fi
+          TARGET=$(rustc -vV | grep host | cut -d' ' -f2)
           mkdir -p release
-          cp "$BIN" release/
+          cp target/release/tabstruct${{ matrix.suffix }} release/
           tar czvf "tabstruct-${VERSION}-${TARGET}.tar.gz" -C release .
 
       - name: Prepare archive (Windows)
