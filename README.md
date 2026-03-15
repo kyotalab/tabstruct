@@ -37,6 +37,13 @@ cargo install --path .
 cargo install tabstruct
 ```
 
+### Homebrew からインストール
+
+```bash
+brew tap kyotalab/tap
+brew install tabstruct
+```
+
 ### GitHub Release のバイナリを使う
 
 [Releases](https://github.com/kyotalab/tabstruct/releases) から、OS・アーキテクチャに合ったアーカイブ（例: `tabstruct-v0.1.0-x86_64-unknown-linux-gnu.tar.gz`）をダウンロードし、展開して得られた `tabstruct`（Windows の場合は `tabstruct.exe`）を PATH の通った場所に置いてください。
