@@ -43,6 +43,7 @@ pub fn format_schema_report(report: &SchemaReport) -> String {
         out.push_str(&format!("- {}: {type_str}\n", field.path));
     }
 
+    out.push('\n');
     out
 }
 
