@@ -2,49 +2,56 @@
 
 CSV / JSON / YAML を相互変換し、データ構造を確認できる CLI ツールです。
 
-- **schema**: 入力の構造（形式・ルート型・レコード数・フィールドと型）を表示
-- **convert**: CSV ↔ JSON ↔ YAML の変換
+## Overview
 
-## インストール
+`tabstruct` は、CSV・JSON・YAML を扱う Rust 製 CLI です。主な用途は、CSV で管理された設定データを JSON や YAML へ変換することです（例: AWS CDK 設定ファイルの生成）。
+
+## Features
+
+- **schema** … 入力の形式・ルート型・レコード数・フィールドと型を表示
+- **convert** … CSV ↔ JSON ↔ YAML の相互変換
+
+対応フォーマット: **CSV**, **JSON**, **YAML**
+
+## Installation
 
 ```bash
 cargo install --path .
 ```
 
-## 最小利用例
-
-### 構造の確認 (schema)
+## Usage
 
 ```bash
-# ファイルを指定して構造を表示
-tabstruct schema --file sample.csv
-tabstruct schema --file config.json
-tabstruct schema --file config.yaml
-
-# 標準入力（--type 必須）
-cat sample.csv | tabstruct schema --stdin --type csv
+tabstruct --help
+tabstruct schema --help
+tabstruct convert --help
 ```
 
-### 形式変換 (convert)
+## Examples
+
+### schema
 
 ```bash
-# CSV → JSON
+tabstruct schema --file sample.csv
+```
+
+### convert
+
+```bash
 tabstruct convert --file sample.csv --json
-
-# CSV → YAML
 tabstruct convert --file sample.csv --yaml
-
-# JSON → CSV
-tabstruct convert --file config.json --csv
-
-# YAML → JSON（または --csv）
-tabstruct convert --file config.yaml --json
+tabstruct convert --file sample.json --csv
 
 # 出力をファイルへ
 tabstruct convert --file sample.csv --yaml --output out.yaml
+```
 
-# 標準入力
-cat sample.json | tabstruct convert --stdin --type json --yaml
+### stdin
+
+`--stdin` を使う場合は `--type` が必須です。
+
+```bash
+cat sample.csv | tabstruct convert --stdin --type csv --json
 ```
 
 ### サンプルで試す
@@ -57,16 +64,18 @@ tabstruct convert --file examples/sample.csv --json
 tabstruct convert --file examples/sample.json --yaml
 ```
 
-## 仕様メモ
+## Limitations
 
-- **入力**: ファイルは拡張子で形式を判定（`.csv`, `.json`, `.yaml`, `.yml`）。標準入力の場合は `--type csv|json|yaml` が必須。
-- **CSV**: ヘッダ必須・カンマ区切り。ネストは `settings.interval` のようにドットで表現。
-- **JSON/YAML → CSV**: 配列フィールドは非対応。ルートはオブジェクトまたはオブジェクトの配列。
+- **CSV**
+  - ヘッダ行必須
+  - 区切り文字はカンマ固定
+  - ネストは `a.b.c` のドット記法で表現
+- **JSON/YAML → CSV**
+  - 配列フィールドを含む構造は変換不可
 
-## ヘルプ
+## Development
 
 ```bash
-tabstruct --help
-tabstruct schema --help
-tabstruct convert --help
+cargo build
+cargo test
 ```
