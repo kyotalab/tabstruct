@@ -21,11 +21,6 @@ jobs:
             archive: tar.gz
             target: x86_64-apple-darwin
             artifact_name: macos-x86_64
-          - os: macos-latest
-            suffix: ''
-            archive: tar.gz
-            target: aarch64-apple-darwin
-            artifact_name: macos-aarch64
           - os: windows-latest
             suffix: .exe
             archive: zip
@@ -86,8 +81,7 @@ jobs:
         run: |
           echo "# SHA256 for macOS and Linux binaries (Homebrew etc.)" > SHA256SUMS
           for f in artifacts/ubuntu-latest/*.tar.gz \
-                   artifacts/macos-x86_64/*.tar.gz \
-                   artifacts/macos-aarch64/*.tar.gz; do
+                   artifacts/macos-x86_64/*.tar.gz; do
             [ -f "$f" ] || continue
             echo "$(sha256sum "$f" | cut -d' ' -f1)  $(basename "$f")" >> SHA256SUMS
           done
