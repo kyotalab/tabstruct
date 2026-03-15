@@ -44,6 +44,7 @@ jobs:
         run: rustup target add ${{ matrix.target }}
 
       - name: Build release
+        shell: bash
         run: |
           if [ -n "${{ matrix.target }}" ]; then
             cargo build --release --target ${{ matrix.target }}
