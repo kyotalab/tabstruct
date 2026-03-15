@@ -15,9 +15,31 @@ CSV / JSON / YAML を相互変換し、データ構造を確認できる CLI ツ
 
 ## Installation
 
+### 前提
+
+- [Rust](https://www.rust-lang.org/)（Cargo 同梱）がインストールされていること。未導入の場合は [rustup](https://rustup.rs/) で導入できます。
+
+### ソースからビルドしてインストール
+
+リポジトリをクローンしたディレクトリで次を実行すると、`~/.cargo/bin/` に `tabstruct` がインストールされます（PATH に `~/.cargo/bin` が含まれている必要があります）。
+
 ```bash
+git clone https://github.com/kyotalab/tabstruct.git
+cd tabstruct
 cargo install --path .
 ```
+
+### crates.io からインストール（未公開）
+
+[crates.io](https://crates.io/) に公開済みの場合は、次のコマンドでインストールできます。
+
+```bash
+cargo install tabstruct
+```
+
+### GitHub Release のバイナリを使う
+
+[Releases](https://github.com/kyotalab/tabstruct/releases) から、OS・アーキテクチャに合ったアーカイブ（例: `tabstruct-v0.1.0-x86_64-unknown-linux-gnu.tar.gz`）をダウンロードし、展開して得られた `tabstruct`（Windows の場合は `tabstruct.exe`）を PATH の通った場所に置いてください。
 
 ## Usage
 
