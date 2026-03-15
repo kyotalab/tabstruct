@@ -1,0 +1,4 @@
+[
+  {"id": 1, "name": "canary-a", "enabled": true, "settings": {"interval": 5, "url": "https://example.com"}},
+  {"id": 2, "name": "canary-b", "enabled": false, "settings": {"interval": null, "url": "https://example.org"}}
+]

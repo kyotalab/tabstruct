@@ -1,0 +1,4 @@
+id,name,enabled,settings.interval,settings.url
+1,canary-a,true,5,https://example.com
+2,canary-b,false,,https://example.org
+3,canary-c,,10,
