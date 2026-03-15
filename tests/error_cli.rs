@@ -28,18 +28,19 @@ fn fixture_path(name: &str) -> String {
 fn schema_stdin_without_type_fails() {
     let mut cmd = Command::cargo_bin("tabstruct").unwrap();
     cmd.args(["schema", "--stdin"]).write_stdin("a,b\n1,2");
-    cmd.assert().failure().stderr(
-        predicate::str::contains("--type").or(predicate::str::contains("required")),
-    );
+    cmd.assert()
+        .failure()
+        .stderr(predicate::str::contains("--type").or(predicate::str::contains("required")));
 }
 
 #[test]
 fn convert_stdin_without_type_fails() {
     let mut cmd = Command::cargo_bin("tabstruct").unwrap();
-    cmd.args(["convert", "--stdin", "--json"]).write_stdin(r#"{"a":1}"#);
-    cmd.assert().failure().stderr(
-        predicate::str::contains("--type").or(predicate::str::contains("required")),
-    );
+    cmd.args(["convert", "--stdin", "--json"])
+        .write_stdin(r#"{"a":1}"#);
+    cmd.assert()
+        .failure()
+        .stderr(predicate::str::contains("--type").or(predicate::str::contains("required")));
 }
 
 // --- 不正拡張子 ---
@@ -79,12 +80,10 @@ fn json_extension_with_invalid_content_fails() {
     fs::write(&path, "this is not json").unwrap();
     let mut cmd = Command::cargo_bin("tabstruct").unwrap();
     cmd.args(["schema", "--file", path.to_str().unwrap()]);
-    cmd.assert()
-        .failure()
-        .stderr(
-            predicate::str::contains("could not be parsed")
-                .or(predicate::str::contains("JSON parse error")),
-        );
+    cmd.assert().failure().stderr(
+        predicate::str::contains("could not be parsed")
+            .or(predicate::str::contains("JSON parse error")),
+    );
     fs::remove_file(&path).ok();
 }
 
@@ -95,13 +94,11 @@ fn yaml_extension_with_invalid_content_fails() {
     fs::write(&path, "{{{ invalid").unwrap();
     let mut cmd = Command::cargo_bin("tabstruct").unwrap();
     cmd.args(["schema", "--file", path.to_str().unwrap()]);
-    cmd.assert()
-        .failure()
-        .stderr(
-            predicate::str::contains("could not be parsed")
-                .or(predicate::str::contains("YAML"))
-                .or(predicate::str::contains("parse")),
-        );
+    cmd.assert().failure().stderr(
+        predicate::str::contains("could not be parsed")
+            .or(predicate::str::contains("YAML"))
+            .or(predicate::str::contains("parse")),
+    );
     fs::remove_file(&path).ok();
 }
 
@@ -112,12 +109,9 @@ fn invalid_csv_header_fails() {
     let path = fixture_path("invalid_header_double_dot.csv");
     let mut cmd = Command::cargo_bin("tabstruct").unwrap();
     cmd.args(["schema", "--file", &path]);
-    cmd.assert()
-        .failure()
-        .stderr(
-            predicate::str::contains("Invalid CSV header")
-                .or(predicate::str::contains("header")),
-        );
+    cmd.assert().failure().stderr(
+        predicate::str::contains("Invalid CSV header").or(predicate::str::contains("header")),
+    );
 }
 
 // --- array field の CSV 変換はエラー ---
@@ -127,12 +121,10 @@ fn array_field_to_csv_fails() {
     let path = fixture_path("array_field.json");
     let mut cmd = Command::cargo_bin("tabstruct").unwrap();
     cmd.args(["convert", "--file", &path, "--csv"]);
-    cmd.assert()
-        .failure()
-        .stderr(
-            predicate::str::contains("Array field")
-                .and(predicate::str::contains("cannot be converted to CSV")),
-        );
+    cmd.assert().failure().stderr(
+        predicate::str::contains("Array field")
+            .and(predicate::str::contains("cannot be converted to CSV")),
+    );
 }
 
 // --- 列数不一致はエラー ---
@@ -142,13 +134,11 @@ fn csv_column_count_mismatch_fails() {
     let path = fixture_path("column_mismatch.csv");
     let mut cmd = Command::cargo_bin("tabstruct").unwrap();
     cmd.args(["schema", "--file", &path]);
-    cmd.assert()
-        .failure()
-        .stderr(
-            predicate::str::contains("columns")
-                .or(predicate::str::contains("column"))
-                .or(predicate::str::contains("row")),
-        );
+    cmd.assert().failure().stderr(
+        predicate::str::contains("columns")
+            .or(predicate::str::contains("column"))
+            .or(predicate::str::contains("row")),
+    );
 }
 
 #[test]

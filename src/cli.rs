@@ -132,7 +132,9 @@ mod tests {
     #[test]
     fn cli_schema_requires_file_or_stdin() {
         let result = Cli::try_parse_from(["tabstruct", "schema"]);
-        assert!(result.is_err(), "schema without --file or --stdin must fail");
+        assert!(
+            result.is_err(),
+            "schema without --file or --stdin must fail"
+        );
     }
 }
-

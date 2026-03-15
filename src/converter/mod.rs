@@ -31,10 +31,27 @@ mod tests {
         let yaml = convert(&doc, OutputType::Yaml).unwrap();
         let parsed: serde_yaml::Value = serde_yaml::from_str(&yaml).unwrap();
         let map = parsed.as_mapping().unwrap();
-        assert_eq!(map.get(&serde_yaml::Value::String("a".into())).and_then(|v| v.as_i64()), Some(1));
-        assert_eq!(map.get(&serde_yaml::Value::String("b".into())).and_then(|v| v.as_str()), Some("x"));
-        let nested = map.get(&serde_yaml::Value::String("nested".into())).unwrap().as_mapping().unwrap();
-        assert_eq!(nested.get(&serde_yaml::Value::String("c".into())).and_then(|v| v.as_bool()), Some(true));
+        assert_eq!(
+            map.get(&serde_yaml::Value::String("a".into()))
+                .and_then(|v| v.as_i64()),
+            Some(1)
+        );
+        assert_eq!(
+            map.get(&serde_yaml::Value::String("b".into()))
+                .and_then(|v| v.as_str()),
+            Some("x")
+        );
+        let nested = map
+            .get(&serde_yaml::Value::String("nested".into()))
+            .unwrap()
+            .as_mapping()
+            .unwrap();
+        assert_eq!(
+            nested
+                .get(&serde_yaml::Value::String("c".into()))
+                .and_then(|v| v.as_bool()),
+            Some(true)
+        );
     }
 
     #[test]
@@ -47,7 +64,12 @@ mod tests {
         assert_eq!(obj.get("a").and_then(|v| v.as_i64()), Some(1));
         assert_eq!(obj.get("b").and_then(|v| v.as_str()), Some("x"));
         assert!(obj.get("nested").and_then(|v| v.as_object()).is_some());
-        assert_eq!(obj.get("nested").and_then(|v| v.get("c")).and_then(|v| v.as_bool()), Some(true));
+        assert_eq!(
+            obj.get("nested")
+                .and_then(|v| v.get("c"))
+                .and_then(|v| v.as_bool()),
+            Some(true)
+        );
     }
 
     #[test]
@@ -66,4 +88,3 @@ mod tests {
         assert_eq!(lines[1], "1,x");
     }
 }
-

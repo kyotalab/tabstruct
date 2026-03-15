@@ -65,4 +65,3 @@ fn run_convert(args: ConvertArgs) -> Result<(), TabstructError> {
     io::write_output(args.output.as_deref(), &rendered)?;
     Ok(())
 }
-

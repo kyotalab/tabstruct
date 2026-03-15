@@ -13,9 +13,9 @@ pub fn value_to_data_value(v: &serde_yaml::Value) -> DataValue {
         serde_yaml::Value::Bool(b) => DataValue::Bool(*b),
         serde_yaml::Value::Number(n) => yaml_number_to_data_value(n),
         serde_yaml::Value::String(s) => DataValue::String(s.clone()),
-        serde_yaml::Value::Sequence(seq) => DataValue::Array(
-            seq.iter().map(value_to_data_value).collect(),
-        ),
+        serde_yaml::Value::Sequence(seq) => {
+            DataValue::Array(seq.iter().map(value_to_data_value).collect())
+        }
         serde_yaml::Value::Mapping(map) => {
             let mut obj = BTreeMap::new();
             for (k, val) in map {
@@ -57,11 +57,10 @@ fn yaml_value_to_key_string(k: &serde_yaml::Value) -> String {
 /// YAML 文字列をパースし、ルートが object または array の場合に `Document` を返す。
 /// ルートがスカラー等の場合はエラーにする。
 pub fn parse_yaml_document(input: &str) -> Result<Document, TabstructError> {
-    let value: serde_yaml::Value = serde_yaml::from_str(input).map_err(|e| {
-        TabstructError::YamlParse {
+    let value: serde_yaml::Value =
+        serde_yaml::from_str(input).map_err(|e| TabstructError::YamlParse {
             message: e.to_string(),
-        }
-    })?;
+        })?;
 
     let root = value_to_data_value(&value);
     match &root {
@@ -169,8 +168,12 @@ mod tests {
         match &doc.root {
             DataValue::Array(arr) => {
                 assert_eq!(arr.len(), 2);
-                assert!(matches!(&arr[0], DataValue::Object(m) if m.get("id") == Some(&DataValue::Integer(1))));
-                assert!(matches!(&arr[1], DataValue::Object(m) if m.get("id") == Some(&DataValue::Integer(2))));
+                assert!(
+                    matches!(&arr[0], DataValue::Object(m) if m.get("id") == Some(&DataValue::Integer(1)))
+                );
+                assert!(
+                    matches!(&arr[1], DataValue::Object(m) if m.get("id") == Some(&DataValue::Integer(2)))
+                );
             }
             _ => panic!("expected Array root"),
         }

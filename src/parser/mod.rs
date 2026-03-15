@@ -39,4 +39,3 @@ mod tests {
     // CSV → Document は app 層で parser::csv + converter::csv_to_model により行う。
     // 統合テストは converter::csv_to_model::tests および app の get_document で実施。
 }
-

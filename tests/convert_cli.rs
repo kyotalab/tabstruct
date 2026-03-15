@@ -28,17 +28,15 @@ fn convert_csv_to_json_file() {
     let path = fixture_path("convert_sample.csv");
     let mut cmd = Command::cargo_bin("tabstruct").unwrap();
     cmd.args(["convert", "--file", &path, "--json"]);
-    cmd.assert()
-        .success()
-        .stdout(
-            predicate::str::contains("\"id\"")
-                .and(predicate::str::contains("\"name\""))
-                .and(predicate::str::contains("\"settings\""))
-                .and(predicate::str::contains("1"))
-                .and(predicate::str::contains("canary-a"))
-                .and(predicate::str::contains("5"))
-                .and(predicate::str::contains("https://example.com")),
-        );
+    cmd.assert().success().stdout(
+        predicate::str::contains("\"id\"")
+            .and(predicate::str::contains("\"name\""))
+            .and(predicate::str::contains("\"settings\""))
+            .and(predicate::str::contains("1"))
+            .and(predicate::str::contains("canary-a"))
+            .and(predicate::str::contains("5"))
+            .and(predicate::str::contains("https://example.com")),
+    );
 }
 
 #[test]
@@ -46,17 +44,15 @@ fn convert_csv_to_yaml_file() {
     let path = fixture_path("convert_sample.csv");
     let mut cmd = Command::cargo_bin("tabstruct").unwrap();
     cmd.args(["convert", "--file", &path, "--yaml"]);
-    cmd.assert()
-        .success()
-        .stdout(
-            predicate::str::contains("id:")
-                .and(predicate::str::contains("name:"))
-                .and(predicate::str::contains("settings:"))
-                .and(predicate::str::contains("interval:"))
-                .and(predicate::str::contains("url:"))
-                .and(predicate::str::contains("1"))
-                .and(predicate::str::contains("canary-a")),
-        );
+    cmd.assert().success().stdout(
+        predicate::str::contains("id:")
+            .and(predicate::str::contains("name:"))
+            .and(predicate::str::contains("settings:"))
+            .and(predicate::str::contains("interval:"))
+            .and(predicate::str::contains("url:"))
+            .and(predicate::str::contains("1"))
+            .and(predicate::str::contains("canary-a")),
+    );
 }
 
 #[test]
@@ -65,13 +61,12 @@ fn convert_csv_to_json_stdin() {
     let mut cmd = Command::cargo_bin("tabstruct").unwrap();
     cmd.args(["convert", "--stdin", "--type", "csv", "--json"])
         .write_stdin(csv);
-    cmd.assert()
-        .success()
-        .stdout(
-            predicate::str::contains("\"a\"").and(predicate::str::contains("\"b\""))
-                .and(predicate::str::contains("1"))
-                .and(predicate::str::contains("2")),
-        );
+    cmd.assert().success().stdout(
+        predicate::str::contains("\"a\"")
+            .and(predicate::str::contains("\"b\""))
+            .and(predicate::str::contains("1"))
+            .and(predicate::str::contains("2")),
+    );
 }
 
 #[test]
@@ -80,13 +75,12 @@ fn convert_csv_to_yaml_stdin() {
     let mut cmd = Command::cargo_bin("tabstruct").unwrap();
     cmd.args(["convert", "--stdin", "--type", "csv", "--yaml"])
         .write_stdin(csv);
-    cmd.assert()
-        .success()
-        .stdout(
-            predicate::str::contains("a:").and(predicate::str::contains("b:"))
-                .and(predicate::str::contains("1"))
-                .and(predicate::str::contains("2")),
-        );
+    cmd.assert().success().stdout(
+        predicate::str::contains("a:")
+            .and(predicate::str::contains("b:"))
+            .and(predicate::str::contains("1"))
+            .and(predicate::str::contains("2")),
+    );
 }
 
 // --- JSON -> CSV / YAML -> CSV ---
@@ -107,12 +101,9 @@ fn convert_json_to_csv_nested() {
     let mut cmd = Command::cargo_bin("tabstruct").unwrap();
     cmd.args(["convert", "--stdin", "--type", "json", "--csv"])
         .write_stdin(json);
-    cmd.assert()
-        .success()
-        .stdout(
-            predicate::str::contains("id,name,nested.x")
-                .and(predicate::str::contains("1,a,2")),
-        );
+    cmd.assert().success().stdout(
+        predicate::str::contains("id,name,nested.x").and(predicate::str::contains("1,a,2")),
+    );
 }
 
 #[test]
@@ -122,18 +113,10 @@ fn convert_yaml_to_csv_file() {
     let content = "id: 1\nname: a\nnested:\n  x: 2\n";
     fs::write(&yaml_path, content).unwrap();
     let mut cmd = Command::cargo_bin("tabstruct").unwrap();
-    cmd.args([
-        "convert",
-        "--file",
-        yaml_path.to_str().unwrap(),
-        "--csv",
-    ]);
-    cmd.assert()
-        .success()
-        .stdout(
-            predicate::str::contains("id,name,nested.x")
-                .and(predicate::str::contains("1,a,2")),
-        );
+    cmd.args(["convert", "--file", yaml_path.to_str().unwrap(), "--csv"]);
+    cmd.assert().success().stdout(
+        predicate::str::contains("id,name,nested.x").and(predicate::str::contains("1,a,2")),
+    );
     fs::remove_file(&yaml_path).ok();
 }
 
@@ -145,10 +128,7 @@ fn convert_yaml_to_csv_stdin() {
         .write_stdin(yaml);
     cmd.assert()
         .success()
-        .stdout(
-            predicate::str::contains("id,name")
-                .and(predicate::str::contains("1,b")),
-        );
+        .stdout(predicate::str::contains("id,name").and(predicate::str::contains("1,b")));
 }
 
 // --- JSON -> YAML / YAML -> JSON ---
@@ -160,9 +140,7 @@ fn convert_json_to_yaml_file() {
     cmd.args(["convert", "--file", &path, "--yaml"]);
     cmd.assert()
         .success()
-        .stdout(
-            predicate::str::contains("x:").and(predicate::str::contains("1")),
-        );
+        .stdout(predicate::str::contains("x:").and(predicate::str::contains("1")));
 }
 
 #[test]
@@ -173,14 +151,12 @@ fn convert_yaml_to_json_file() {
     fs::write(&yaml_path, content).unwrap();
     let mut cmd = Command::cargo_bin("tabstruct").unwrap();
     cmd.args(["convert", "--file", yaml_path.to_str().unwrap(), "--json"]);
-    cmd.assert()
-        .success()
-        .stdout(
-            predicate::str::contains("\"a\"")
-                .and(predicate::str::contains("1"))
-                .and(predicate::str::contains("\"b\""))
-                .and(predicate::str::contains("x")),
-        );
+    cmd.assert().success().stdout(
+        predicate::str::contains("\"a\"")
+            .and(predicate::str::contains("1"))
+            .and(predicate::str::contains("\"b\""))
+            .and(predicate::str::contains("x")),
+    );
     fs::remove_file(&yaml_path).ok();
 }
 
@@ -191,9 +167,7 @@ fn convert_json_to_yaml_stdin() {
         .write_stdin(r#"{"x":2}"#);
     cmd.assert()
         .success()
-        .stdout(
-            predicate::str::contains("x:").and(predicate::str::contains("2")),
-        );
+        .stdout(predicate::str::contains("x:").and(predicate::str::contains("2")));
 }
 
 #[test]
@@ -203,9 +177,7 @@ fn convert_yaml_to_json_stdin() {
         .write_stdin("x: 2\n");
     cmd.assert()
         .success()
-        .stdout(
-            predicate::str::contains("\"x\"").and(predicate::str::contains("2")),
-        );
+        .stdout(predicate::str::contains("\"x\"").and(predicate::str::contains("2")));
 }
 
 // --- output 経路: ファイル出力 ---

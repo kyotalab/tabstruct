@@ -51,4 +51,3 @@ pub struct SchemaReport {
     pub records: usize,
     pub fields: Vec<SchemaField>,
 }
-

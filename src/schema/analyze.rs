@@ -418,13 +418,11 @@ mod tests {
                     nullable: false,
                 },
             ],
-            rows: vec![
-                vec![
-                    DataValue::Integer(1),
-                    DataValue::String("x".into()),
-                    DataValue::Bool(true),
-                ],
-            ],
+            rows: vec![vec![
+                DataValue::Integer(1),
+                DataValue::String("x".into()),
+                DataValue::Bool(true),
+            ]],
         };
         let report = analyze_csv(&typed);
         assert_eq!(report.format, InputFormat::Csv);

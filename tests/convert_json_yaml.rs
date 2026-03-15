@@ -16,12 +16,12 @@ fn convert_file_json_to_yaml() {
     std::fs::write(&json_path, content).unwrap();
     let mut cmd = Command::cargo_bin("tabstruct").unwrap();
     cmd.args(["convert", "--file", json_path.to_str().unwrap(), "--yaml"]);
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("a:")
+    cmd.assert().success().stdout(
+        predicate::str::contains("a:")
             .and(predicate::str::contains("1"))
             .and(predicate::str::contains("b:"))
-            .and(predicate::str::contains("x")));
+            .and(predicate::str::contains("x")),
+    );
     std::fs::remove_file(&json_path).ok();
 }
 
@@ -33,12 +33,12 @@ fn convert_file_yaml_to_json() {
     std::fs::write(&yaml_path, content).unwrap();
     let mut cmd = Command::cargo_bin("tabstruct").unwrap();
     cmd.args(["convert", "--file", yaml_path.to_str().unwrap(), "--json"]);
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("\"a\"")
+    cmd.assert().success().stdout(
+        predicate::str::contains("\"a\"")
             .and(predicate::str::contains("1"))
             .and(predicate::str::contains("\"b\""))
-            .and(predicate::str::contains("x")));
+            .and(predicate::str::contains("x")),
+    );
     std::fs::remove_file(&yaml_path).ok();
 }
 
@@ -72,12 +72,9 @@ fn convert_file_json_to_csv() {
     std::fs::write(&json_path, content).unwrap();
     let mut cmd = Command::cargo_bin("tabstruct").unwrap();
     cmd.args(["convert", "--file", json_path.to_str().unwrap(), "--csv"]);
-    cmd.assert()
-        .success()
-        .stdout(
-            predicate::str::contains("id,name,nested.x")
-                .and(predicate::str::contains("1,a,2")),
-        );
+    cmd.assert().success().stdout(
+        predicate::str::contains("id,name,nested.x").and(predicate::str::contains("1,a,2")),
+    );
     std::fs::remove_file(&json_path).ok();
 }
 
@@ -89,12 +86,9 @@ fn convert_file_yaml_to_csv() {
     std::fs::write(&yaml_path, content).unwrap();
     let mut cmd = Command::cargo_bin("tabstruct").unwrap();
     cmd.args(["convert", "--file", yaml_path.to_str().unwrap(), "--csv"]);
-    cmd.assert()
-        .success()
-        .stdout(
-            predicate::str::contains("id,name,nested.x")
-                .and(predicate::str::contains("1,a,2")),
-        );
+    cmd.assert().success().stdout(
+        predicate::str::contains("id,name,nested.x").and(predicate::str::contains("1,a,2")),
+    );
     std::fs::remove_file(&yaml_path).ok();
 }
 
@@ -150,10 +144,10 @@ fn convert_file_json_with_array_field_to_csv_fails() {
     std::fs::write(&json_path, content).unwrap();
     let mut cmd = Command::cargo_bin("tabstruct").unwrap();
     cmd.args(["convert", "--file", json_path.to_str().unwrap(), "--csv"]);
-    cmd.assert()
-        .failure()
-        .stderr(predicate::str::contains("Array field")
-            .and(predicate::str::contains("cannot be converted to CSV")));
+    cmd.assert().failure().stderr(
+        predicate::str::contains("Array field")
+            .and(predicate::str::contains("cannot be converted to CSV")),
+    );
     std::fs::remove_file(&json_path).ok();
 }
 
@@ -167,21 +161,19 @@ fn convert_file_csv_to_json() {
     std::fs::write(&csv_path, content).unwrap();
     let mut cmd = Command::cargo_bin("tabstruct").unwrap();
     cmd.args(["convert", "--file", csv_path.to_str().unwrap(), "--json"]);
-    cmd.assert()
-        .success()
-        .stdout(
-            predicate::str::contains("\"id\"")
-                .and(predicate::str::contains("\"name\""))
-                .and(predicate::str::contains("\"settings\""))
-                .and(predicate::str::contains("\"interval\""))
-                .and(predicate::str::contains("\"url\""))
-                .and(predicate::str::contains("1"))
-                .and(predicate::str::contains("canary-a"))
-                .and(predicate::str::contains("5"))
-                .and(predicate::str::contains("https://example.com"))
-                .and(predicate::str::contains("2"))
-                .and(predicate::str::contains("canary-b")),
-        );
+    cmd.assert().success().stdout(
+        predicate::str::contains("\"id\"")
+            .and(predicate::str::contains("\"name\""))
+            .and(predicate::str::contains("\"settings\""))
+            .and(predicate::str::contains("\"interval\""))
+            .and(predicate::str::contains("\"url\""))
+            .and(predicate::str::contains("1"))
+            .and(predicate::str::contains("canary-a"))
+            .and(predicate::str::contains("5"))
+            .and(predicate::str::contains("https://example.com"))
+            .and(predicate::str::contains("2"))
+            .and(predicate::str::contains("canary-b")),
+    );
     std::fs::remove_file(&csv_path).ok();
 }
 
@@ -193,19 +185,17 @@ fn convert_file_csv_to_yaml() {
     std::fs::write(&csv_path, content).unwrap();
     let mut cmd = Command::cargo_bin("tabstruct").unwrap();
     cmd.args(["convert", "--file", csv_path.to_str().unwrap(), "--yaml"]);
-    cmd.assert()
-        .success()
-        .stdout(
-            predicate::str::contains("id:")
-                .and(predicate::str::contains("name:"))
-                .and(predicate::str::contains("settings:"))
-                .and(predicate::str::contains("interval:"))
-                .and(predicate::str::contains("url:"))
-                .and(predicate::str::contains("1"))
-                .and(predicate::str::contains("canary-a"))
-                .and(predicate::str::contains("5"))
-                .and(predicate::str::contains("https://example.com")),
-        );
+    cmd.assert().success().stdout(
+        predicate::str::contains("id:")
+            .and(predicate::str::contains("name:"))
+            .and(predicate::str::contains("settings:"))
+            .and(predicate::str::contains("interval:"))
+            .and(predicate::str::contains("url:"))
+            .and(predicate::str::contains("1"))
+            .and(predicate::str::contains("canary-a"))
+            .and(predicate::str::contains("5"))
+            .and(predicate::str::contains("https://example.com")),
+    );
     std::fs::remove_file(&csv_path).ok();
 }
 
@@ -215,15 +205,14 @@ fn convert_stdin_csv_to_json() {
     let mut cmd = Command::cargo_bin("tabstruct").unwrap();
     cmd.args(["convert", "--stdin", "--type", "csv", "--json"])
         .write_stdin(csv);
-    cmd.assert()
-        .success()
-        .stdout(
-            predicate::str::contains("\"a\"").and(predicate::str::contains("\"b\""))
-                .and(predicate::str::contains("1"))
-                .and(predicate::str::contains("2"))
-                .and(predicate::str::contains("3"))
-                .and(predicate::str::contains("4")),
-        );
+    cmd.assert().success().stdout(
+        predicate::str::contains("\"a\"")
+            .and(predicate::str::contains("\"b\""))
+            .and(predicate::str::contains("1"))
+            .and(predicate::str::contains("2"))
+            .and(predicate::str::contains("3"))
+            .and(predicate::str::contains("4")),
+    );
 }
 
 #[test]
@@ -232,13 +221,12 @@ fn convert_stdin_csv_to_yaml() {
     let mut cmd = Command::cargo_bin("tabstruct").unwrap();
     cmd.args(["convert", "--stdin", "--type", "csv", "--yaml"])
         .write_stdin(csv);
-    cmd.assert()
-        .success()
-        .stdout(
-            predicate::str::contains("a:").and(predicate::str::contains("b:"))
-                .and(predicate::str::contains("1"))
-                .and(predicate::str::contains("2")),
-        );
+    cmd.assert().success().stdout(
+        predicate::str::contains("a:")
+            .and(predicate::str::contains("b:"))
+            .and(predicate::str::contains("1"))
+            .and(predicate::str::contains("2")),
+    );
 }
 
 /// null含み: 空セルは JSON で null になる。
@@ -249,7 +237,11 @@ fn convert_csv_to_json_with_nulls() {
     cmd.args(["convert", "--stdin", "--type", "csv", "--json"])
         .write_stdin(csv);
     let out = cmd.output().unwrap();
-    assert!(out.status.success(), "stderr: {}", String::from_utf8_lossy(&out.stderr));
+    assert!(
+        out.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
     let stdout = String::from_utf8_lossy(&out.stdout);
     let parsed: serde_json::Value = serde_json::from_str(&stdout).unwrap();
     let arr = parsed.as_array().unwrap();
@@ -263,12 +255,17 @@ fn convert_csv_to_json_with_nulls() {
 /// nested object: a.b.c ヘッダからネストオブジェクトが復元され JSON に出力される。
 #[test]
 fn convert_csv_to_json_nested_object() {
-    let csv = "id,settings.interval,settings.url\n1,5,https://example.com\n2,10,https://example.org\n";
+    let csv =
+        "id,settings.interval,settings.url\n1,5,https://example.com\n2,10,https://example.org\n";
     let mut cmd = Command::cargo_bin("tabstruct").unwrap();
     cmd.args(["convert", "--stdin", "--type", "csv", "--json"])
         .write_stdin(csv);
     let out = cmd.output().unwrap();
-    assert!(out.status.success(), "stderr: {}", String::from_utf8_lossy(&out.stderr));
+    assert!(
+        out.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
     let stdout = String::from_utf8_lossy(&out.stdout);
     let parsed: serde_json::Value = serde_json::from_str(&stdout).unwrap();
     let arr = parsed.as_array().unwrap();

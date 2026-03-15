@@ -83,6 +83,9 @@ mod tests {
             root: DataValue::Object(obj),
         };
         let json = document_to_json(&doc).unwrap();
-        assert!(json.contains('\n'), "JSON output should be pretty (contain newlines)");
+        assert!(
+            json.contains('\n'),
+            "JSON output should be pretty (contain newlines)"
+        );
     }
 }

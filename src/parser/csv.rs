@@ -128,9 +128,7 @@ pub fn validate_path_conflicts(headers: &[String]) -> Result<(), TabstructError>
             }
             let a_dot = format!("{a}.");
             if b.starts_with(&a_dot) {
-                return Err(TabstructError::PathConflict {
-                    path: a.clone(),
-                });
+                return Err(TabstructError::PathConflict { path: a.clone() });
             }
         }
     }
@@ -279,7 +277,11 @@ mod tests {
         // ヘッダとデータで列数が違うとエラー（csv crate は CsvParse、自前チェックなら CsvColumnCountMismatch）
         let err = parse_csv("a,b,c\n1,2").unwrap_err();
         match &err {
-            TabstructError::CsvColumnCountMismatch { row, expected, actual } => {
+            TabstructError::CsvColumnCountMismatch {
+                row,
+                expected,
+                actual,
+            } => {
                 assert_eq!(*row, 2);
                 assert_eq!(*expected, 3);
                 assert_eq!(*actual, 2);
@@ -299,7 +301,10 @@ mod tests {
             rows: vec![],
         };
         let err = validate_headers(&raw).unwrap_err();
-        assert!(matches!(err, TabstructError::InvalidCsvHeader { column: 2, .. }));
+        assert!(matches!(
+            err,
+            TabstructError::InvalidCsvHeader { column: 2, .. }
+        ));
     }
 
     #[test]
@@ -434,7 +439,10 @@ mod tests {
         // 2列目で空セルを混ぜる（カンマで空を明示）
         let raw = parse_csv("a,b\n1,2\n,2\n3,4").unwrap();
         let typed = raw_to_typed(raw).unwrap();
-        assert!(typed.column_types[0].nullable, "first column has empty cell");
+        assert!(
+            typed.column_types[0].nullable,
+            "first column has empty cell"
+        );
         assert_eq!(typed.rows[0][0], DataValue::Integer(1));
         assert_eq!(typed.rows[1][0], DataValue::Null);
         assert_eq!(typed.rows[2][0], DataValue::Integer(3));

@@ -112,11 +112,9 @@ pub fn write_stdout(text: &str) -> Result<(), TabstructError> {
         .map_err(|e| TabstructError::IoWrite {
             message: e.to_string(),
         })?;
-    io::stdout()
-        .flush()
-        .map_err(|e| TabstructError::IoWrite {
-            message: e.to_string(),
-        })?;
+    io::stdout().flush().map_err(|e| TabstructError::IoWrite {
+        message: e.to_string(),
+    })?;
     Ok(())
 }
 

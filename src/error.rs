@@ -2,7 +2,9 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum TabstructError {
-    #[error("Either --file or --stdin must be specified (e.g. --file <path> or --stdin --type csv)")]
+    #[error(
+        "Either --file or --stdin must be specified (e.g. --file <path> or --stdin --type csv)"
+    )]
     MissingInput,
 
     #[error("Exactly one of --json, --yaml, or --csv must be specified for convert")]
@@ -27,7 +29,11 @@ pub enum TabstructError {
     DuplicateCsvHeader { column: usize, header: String },
 
     #[error("CSV row {row} has {actual} columns but expected {expected}")]
-    CsvColumnCountMismatch { row: usize, expected: usize, actual: usize },
+    CsvColumnCountMismatch {
+        row: usize,
+        expected: usize,
+        actual: usize,
+    },
 
     #[error("Path conflict in CSV header at \"{path}\" (e.g. both 'settings' and 'settings.interval' cannot coexist)")]
     PathConflict { path: String },
@@ -61,4 +67,3 @@ impl TabstructError {
         }
     }
 }
-

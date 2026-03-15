@@ -99,12 +99,7 @@ mod tests {
     #[test]
     fn insert_path_nested_two_levels() {
         let mut root = BTreeMap::new();
-        insert_path(
-            &mut root,
-            &["settings", "interval"],
-            DataValue::Integer(5),
-        )
-        .unwrap();
+        insert_path(&mut root, &["settings", "interval"], DataValue::Integer(5)).unwrap();
         let settings = root.get("settings").and_then(|v| match v {
             DataValue::Object(m) => Some(m),
             _ => None,
@@ -188,7 +183,11 @@ mod tests {
     #[test]
     fn typed_table_to_document_nested() {
         let typed = TypedCsvTable {
-            headers: vec!["id".into(), "settings.interval".into(), "settings.url".into()],
+            headers: vec![
+                "id".into(),
+                "settings.interval".into(),
+                "settings.url".into(),
+            ],
             column_types: vec![
                 display_type(PrimitiveKind::Integer, false),
                 display_type(PrimitiveKind::Integer, false),

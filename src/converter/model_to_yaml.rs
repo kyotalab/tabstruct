@@ -51,8 +51,16 @@ mod tests {
         let yaml = document_to_yaml(&doc).unwrap();
         let parsed: serde_yaml::Value = serde_yaml::from_str(&yaml).unwrap();
         let map = parsed.as_mapping().unwrap();
-        assert_eq!(map.get(&serde_yaml::Value::String("a".into())).and_then(|v| v.as_i64()), Some(1));
-        assert_eq!(map.get(&serde_yaml::Value::String("b".into())).and_then(|v| v.as_str()), Some("x"));
+        assert_eq!(
+            map.get(&serde_yaml::Value::String("a".into()))
+                .and_then(|v| v.as_i64()),
+            Some(1)
+        );
+        assert_eq!(
+            map.get(&serde_yaml::Value::String("b".into()))
+                .and_then(|v| v.as_str()),
+            Some("x")
+        );
     }
 
     #[test]
@@ -89,6 +97,11 @@ mod tests {
         let map = parsed.as_mapping().unwrap();
         let x = map.get(&serde_yaml::Value::String("x".into())).unwrap();
         let inner_map = x.as_mapping().unwrap();
-        assert_eq!(inner_map.get(&serde_yaml::Value::String("n".into())).and_then(|v| v.as_i64()), Some(2));
+        assert_eq!(
+            inner_map
+                .get(&serde_yaml::Value::String("n".into()))
+                .and_then(|v| v.as_i64()),
+            Some(2)
+        );
     }
 }

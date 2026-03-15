@@ -30,4 +30,3 @@ pub struct Document {
     pub format: InputFormat,
     pub root: DataValue,
 }
-

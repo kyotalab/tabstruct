@@ -128,7 +128,10 @@ pub fn document_to_csv(doc: &Document) -> Result<String, TabstructError> {
             message: e.to_string(),
         })?;
     for row in &rows {
-        let values: Vec<&str> = headers.iter().map(|h| row.get(h).map(|s| s.as_str()).unwrap_or("")).collect();
+        let values: Vec<&str> = headers
+            .iter()
+            .map(|h| row.get(h).map(|s| s.as_str()).unwrap_or(""))
+            .collect();
         wtr.write_record(&values)
             .map_err(|e| TabstructError::IoWrite {
                 message: e.to_string(),
@@ -172,7 +175,10 @@ mod tests {
             DataValue::Integer(1),
         ]);
         let err = validate_csv_compatible_root(&root).unwrap_err();
-        assert!(matches!(err, TabstructError::NonObjectArrayElement { index: 1 }));
+        assert!(matches!(
+            err,
+            TabstructError::NonObjectArrayElement { index: 1 }
+        ));
     }
 
     #[test]
@@ -198,10 +204,16 @@ mod tests {
     fn flatten_object_nested() {
         let mut inner = BTreeMap::new();
         inner.insert("interval".to_string(), DataValue::Integer(5));
-        inner.insert("url".to_string(), DataValue::String("https://example.com".to_string()));
+        inner.insert(
+            "url".to_string(),
+            DataValue::String("https://example.com".to_string()),
+        );
         let mut map = BTreeMap::new();
         map.insert("id".to_string(), DataValue::Integer(1));
-        map.insert("name".to_string(), DataValue::String("canary-a".to_string()));
+        map.insert(
+            "name".to_string(),
+            DataValue::String("canary-a".to_string()),
+        );
         map.insert("settings".to_string(), DataValue::Object(inner));
         let value = DataValue::Object(map);
         let mut out = BTreeMap::new();
@@ -209,7 +221,10 @@ mod tests {
         assert_eq!(out.get("id"), Some(&"1".to_string()));
         assert_eq!(out.get("name"), Some(&"canary-a".to_string()));
         assert_eq!(out.get("settings.interval"), Some(&"5".to_string()));
-        assert_eq!(out.get("settings.url"), Some(&"https://example.com".to_string()));
+        assert_eq!(
+            out.get("settings.url"),
+            Some(&"https://example.com".to_string())
+        );
     }
 
     #[test]
@@ -227,21 +242,29 @@ mod tests {
     #[test]
     fn flatten_object_array_errors() {
         let mut map = BTreeMap::new();
-        map.insert("targets".to_string(), DataValue::Array(vec![
-            DataValue::String("a".to_string()),
-            DataValue::String("b".to_string()),
-        ]));
+        map.insert(
+            "targets".to_string(),
+            DataValue::Array(vec![
+                DataValue::String("a".to_string()),
+                DataValue::String("b".to_string()),
+            ]),
+        );
         let value = DataValue::Object(map);
         let mut out = BTreeMap::new();
         let err = flatten_object(&value, None, &mut out).unwrap_err();
-        assert!(matches!(err, TabstructError::ArrayNotSupportedForCsv { path } if path == "targets"));
+        assert!(
+            matches!(err, TabstructError::ArrayNotSupportedForCsv { path } if path == "targets")
+        );
     }
 
     #[test]
     fn document_to_csv_single_object() {
         let mut map = BTreeMap::new();
         map.insert("id".to_string(), DataValue::Integer(1));
-        map.insert("name".to_string(), DataValue::String("canary-a".to_string()));
+        map.insert(
+            "name".to_string(),
+            DataValue::String("canary-a".to_string()),
+        );
         let doc = Document {
             format: InputFormat::Json,
             root: DataValue::Object(map),
@@ -277,10 +300,16 @@ mod tests {
     fn document_to_csv_nested_object() {
         let mut inner = BTreeMap::new();
         inner.insert("interval".to_string(), DataValue::Integer(5));
-        inner.insert("url".to_string(), DataValue::String("https://example.com".to_string()));
+        inner.insert(
+            "url".to_string(),
+            DataValue::String("https://example.com".to_string()),
+        );
         let mut map = BTreeMap::new();
         map.insert("id".to_string(), DataValue::Integer(1));
-        map.insert("name".to_string(), DataValue::String("canary-a".to_string()));
+        map.insert(
+            "name".to_string(),
+            DataValue::String("canary-a".to_string()),
+        );
         map.insert("settings".to_string(), DataValue::Object(inner));
         let doc = Document {
             format: InputFormat::Json,
@@ -319,7 +348,10 @@ mod tests {
             ]),
         };
         let err = document_to_csv(&doc).unwrap_err();
-        assert!(matches!(err, TabstructError::NonObjectArrayElement { index: 1 }));
+        assert!(matches!(
+            err,
+            TabstructError::NonObjectArrayElement { index: 1 }
+        ));
     }
 
     #[test]
@@ -336,16 +368,22 @@ mod tests {
     fn document_to_csv_array_field_errors() {
         let mut map = BTreeMap::new();
         map.insert("name".to_string(), DataValue::String("test".to_string()));
-        map.insert("targets".to_string(), DataValue::Array(vec![
-            DataValue::String("a".to_string()),
-            DataValue::String("b".to_string()),
-        ]));
+        map.insert(
+            "targets".to_string(),
+            DataValue::Array(vec![
+                DataValue::String("a".to_string()),
+                DataValue::String("b".to_string()),
+            ]),
+        );
         let doc = Document {
             format: InputFormat::Json,
             root: DataValue::Object(map),
         };
         let err = document_to_csv(&doc).unwrap_err();
-        assert!(matches!(err, TabstructError::ArrayNotSupportedForCsv { .. }));
+        assert!(matches!(
+            err,
+            TabstructError::ArrayNotSupportedForCsv { .. }
+        ));
     }
 
     #[test]

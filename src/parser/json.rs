@@ -11,9 +11,9 @@ pub fn value_to_data_value(v: &serde_json::Value) -> DataValue {
         serde_json::Value::Bool(b) => DataValue::Bool(*b),
         serde_json::Value::Number(n) => number_to_data_value(n),
         serde_json::Value::String(s) => DataValue::String(s.clone()),
-        serde_json::Value::Array(arr) => DataValue::Array(
-            arr.iter().map(value_to_data_value).collect(),
-        ),
+        serde_json::Value::Array(arr) => {
+            DataValue::Array(arr.iter().map(value_to_data_value).collect())
+        }
         serde_json::Value::Object(obj) => DataValue::Object(
             obj.iter()
                 .map(|(k, v)| (k.clone(), value_to_data_value(v)))
@@ -43,11 +43,10 @@ fn number_to_data_value(n: &serde_json::Number) -> DataValue {
 /// JSON 文字列をパースし、ルートが object または array の場合に `Document` を返す。
 /// ルートがスカラー等の場合はエラーにする。
 pub fn parse_json_document(input: &str) -> Result<Document, TabstructError> {
-    let value: serde_json::Value = serde_json::from_str(input).map_err(|e| {
-        TabstructError::JsonParse {
+    let value: serde_json::Value =
+        serde_json::from_str(input).map_err(|e| TabstructError::JsonParse {
             message: e.to_string(),
-        }
-    })?;
+        })?;
 
     let root = value_to_data_value(&value);
     match &root {
@@ -155,8 +154,12 @@ mod tests {
         match &doc.root {
             DataValue::Array(arr) => {
                 assert_eq!(arr.len(), 2);
-                assert!(matches!(&arr[0], DataValue::Object(m) if m.get("id") == Some(&DataValue::Integer(1))));
-                assert!(matches!(&arr[1], DataValue::Object(m) if m.get("id") == Some(&DataValue::Integer(2))));
+                assert!(
+                    matches!(&arr[0], DataValue::Object(m) if m.get("id") == Some(&DataValue::Integer(1)))
+                );
+                assert!(
+                    matches!(&arr[1], DataValue::Object(m) if m.get("id") == Some(&DataValue::Integer(2)))
+                );
             }
             _ => panic!("expected Array root"),
         }
