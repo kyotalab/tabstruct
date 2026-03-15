@@ -1,3 +1,7 @@
 design
 prompts
 target
+
+# Release artifacts (SHA256SUMS はコミット可)
+dist/*.tar.gz
+dist/*.zip
