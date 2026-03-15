@@ -13,7 +13,9 @@ pub struct Cli {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
+    /// Show structure (format, root type, record count, fields and types) of CSV/JSON/YAML input
     Schema(InputArgs),
+    /// Convert input to JSON, YAML, or CSV
     Convert(ConvertArgs),
 }
 
@@ -34,13 +36,15 @@ pub enum OutputType {
 #[derive(Debug, Args)]
 #[group(required = true, id = "input_source")]
 pub struct InputArgs {
+    /// Input file path (format inferred from extension: .csv, .json, .yaml, .yml)
     #[arg(long, conflicts_with = "stdin", group = "input_source")]
     pub file: Option<PathBuf>,
 
+    /// Read from stdin (requires --type to specify format)
     #[arg(long, conflicts_with = "file", group = "input_source")]
     pub stdin: bool,
 
-    /// 標準入力使用時に必須。入力形式を指定する。
+    /// Input format when using --stdin (required); ignored when using --file
     #[arg(long, value_enum, required_if_eq("stdin", "true"))]
     pub r#type: Option<InputType>,
 }
@@ -50,15 +54,19 @@ pub struct ConvertArgs {
     #[command(flatten)]
     pub input: InputArgs,
 
+    /// Output as JSON
     #[arg(long, conflicts_with_all = ["yaml", "csv"])]
     pub json: bool,
 
+    /// Output as YAML
     #[arg(long, conflicts_with_all = ["json", "csv"])]
     pub yaml: bool,
 
+    /// Output as CSV (nested fields use dot notation, e.g. settings.interval)
     #[arg(long, conflicts_with_all = ["json", "yaml"])]
     pub csv: bool,
 
+    /// Write result to file (default: stdout)
     #[arg(long)]
     pub output: Option<PathBuf>,
 }
