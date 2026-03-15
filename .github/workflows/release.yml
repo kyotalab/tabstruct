@@ -96,12 +96,7 @@ jobs:
       - name: Upload Release assets (binaries + SHA256SUMS)
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            artifacts/ubuntu-latest/*
-            artifacts/macos-x86_64/*
-            artifacts/macos-aarch64/*
-            artifacts/windows-latest/*
-            SHA256SUMS
+          files: release-assets/*
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
