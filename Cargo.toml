@@ -2,8 +2,12 @@
 name = "tabstruct"
 version = "0.1.0"
 edition = "2021"
-description = "Convert CSV, JSON, and YAML while inspecting structure"
-license = "MIT OR Apache-2.0"
+description = "CLI tool for inspecting and converting CSV, JSON, and YAML with nested structure support"
+license = "MIT"
+repository = "https://github.com/kyotalab/tabstruct"
+readme = "README.md"
+keywords = ["cli", "csv", "json", "yaml", "converter"]
+categories = ["command-line-utilities"]
 authors = ["tabstruct"]
 
 [dependencies]
