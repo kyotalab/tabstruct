@@ -1,8 +1,8 @@
 //! Schema 解析: Document から SchemaReport を生成する。
-//! JSON/YAML 入力向け。CSV はこの単位では未対応。
+//! CSV/JSON/YAML いずれも、Document の root が Object または Array であれば対応。
 
 use crate::error::TabstructError;
-use crate::model::{DataValue, Document, InputFormat, RootType};
+use crate::model::{DataValue, Document, RootType};
 use crate::schema::types::{DisplayType, PrimitiveKind, SchemaField, SchemaReport};
 use std::collections::BTreeMap;
 
@@ -79,14 +79,8 @@ pub fn infer_display_type(values: &[DataValue]) -> DisplayType {
     }
 }
 
-/// Document から SchemaReport を生成する。JSON/YAML のみ対応。CSV は未対応。
+/// Document から SchemaReport を生成する。CSV/JSON/YAML いずれも、root が Object または Array であれば対応。
 pub fn analyze(doc: &Document) -> Result<SchemaReport, TabstructError> {
-    if doc.format == InputFormat::Csv {
-        return Err(TabstructError::internal(
-            "schema for CSV is not implemented in this unit",
-        ));
-    }
-
     let root_type = match &doc.root {
         DataValue::Object(_) => RootType::Object,
         DataValue::Array(_) => RootType::Array,
@@ -126,7 +120,7 @@ pub fn analyze(doc: &Document) -> Result<SchemaReport, TabstructError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::DataValue;
+    use crate::model::{DataValue, InputFormat};
 
     #[test]
     fn collect_leaf_paths_single_object() {
@@ -274,18 +268,37 @@ mod tests {
     }
 
     #[test]
-    fn analyze_csv_unimplemented() {
+    fn analyze_csv_array_of_objects() {
+        // CSV 由来の Document（root が Array<Object>）も schema で解析可能
         let doc = Document {
             format: InputFormat::Csv,
-            root: DataValue::Object(Default::default()),
+            root: DataValue::Array(vec![
+                DataValue::Object(
+                    [
+                        ("id".to_string(), DataValue::Integer(1)),
+                        ("name".to_string(), DataValue::String("alice".into())),
+                    ]
+                    .into_iter()
+                    .collect(),
+                ),
+                DataValue::Object(
+                    [
+                        ("id".to_string(), DataValue::Integer(2)),
+                        ("name".to_string(), DataValue::String("bob".into())),
+                    ]
+                    .into_iter()
+                    .collect(),
+                ),
+            ]),
         };
-        let err = analyze(&doc).unwrap_err();
-        match &err {
-            TabstructError::Internal { message } => {
-                assert!(message.contains("CSV") || message.contains("not implemented"));
-            }
-            _ => panic!("expected Internal error"),
-        }
+        let report = analyze(&doc).unwrap();
+        assert_eq!(report.format, InputFormat::Csv);
+        assert_eq!(report.root_type, RootType::Array);
+        assert_eq!(report.records, 2);
+        assert_eq!(report.fields.len(), 2);
+        let paths: Vec<_> = report.fields.iter().map(|f| f.path.as_str()).collect();
+        assert!(paths.contains(&"id"));
+        assert!(paths.contains(&"name"));
     }
 
     #[test]

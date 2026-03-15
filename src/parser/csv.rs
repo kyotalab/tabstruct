@@ -3,7 +3,6 @@
 use crate::error::TabstructError;
 use crate::model::DataValue;
 use crate::schema::types::{DisplayType, PrimitiveKind};
-use std::collections::BTreeMap;
 use std::io::Cursor;
 
 /// 生のCSVテーブル（ヘッダ + 行すべて文字列）。
@@ -252,57 +251,7 @@ pub fn raw_to_typed(raw: RawCsvTable) -> Result<TypedCsvTable, TabstructError> {
     })
 }
 
-/// TypedCsvTable を Document の root (Array of Object) に変換する。
-pub fn typed_table_to_document(typed: TypedCsvTable) -> crate::model::Document {
-    use crate::model::{Document, InputFormat};
-
-    let mut array = Vec::with_capacity(typed.rows.len());
-    for row in typed.rows {
-        let mut root = BTreeMap::new();
-        for (header, value) in typed.headers.iter().zip(row.iter()) {
-            insert_path(&mut root, header, value.clone()).expect("path already validated");
-        }
-        array.push(DataValue::Object(root));
-    }
-
-    Document {
-        format: InputFormat::Csv,
-        root: DataValue::Array(array),
-    }
-}
-
-/// path (例: "settings.interval") で root に value を挿入する。
-fn insert_path(
-    root: &mut BTreeMap<String, DataValue>,
-    path: &str,
-    value: DataValue,
-) -> Result<(), TabstructError> {
-    let segments: Vec<&str> = path.split('.').collect();
-    if segments.is_empty() {
-        return Err(TabstructError::internal("empty path segments"));
-    }
-
-    let mut current = root;
-    for (idx, segment) in segments.iter().enumerate() {
-        let is_leaf = idx == segments.len() - 1;
-        if is_leaf {
-            current.insert((*segment).to_string(), value.clone());
-        } else {
-            let entry = current
-                .entry((*segment).to_string())
-                .or_insert_with(|| DataValue::Object(BTreeMap::new()));
-            match entry {
-                DataValue::Object(map) => current = map,
-                _ => {
-                    return Err(TabstructError::PathConflict {
-                        path: segments[..=idx].join("."),
-                    });
-                }
-            }
-        }
-    }
-    Ok(())
-}
+// TypedCsvTable → Document の unflatten は converter::csv_to_model に委譲する。
 
 #[cfg(test)]
 mod tests {
@@ -507,28 +456,6 @@ mod tests {
         assert_eq!(typed.column_types[0].kind, PrimitiveKind::String);
     }
 
-    #[test]
-    fn typed_to_document() {
-        let raw = parse_csv("id,settings.interval\n1,5\n2,10").unwrap();
-        let typed = raw_to_typed(raw).unwrap();
-        let doc = typed_table_to_document(typed);
-        let arr = match &doc.root {
-            DataValue::Array(a) => a,
-            _ => panic!("expected array"),
-        };
-        assert_eq!(arr.len(), 2);
-        let obj = match &arr[0] {
-            DataValue::Object(o) => o,
-            _ => panic!("expected object"),
-        };
-        assert_eq!(obj.get("id"), Some(&DataValue::Integer(1)));
-        let settings = obj.get("settings").and_then(|v| match v {
-            DataValue::Object(m) => Some(m),
-            _ => None,
-        });
-        assert_eq!(
-            settings.and_then(|m| m.get("interval")),
-            Some(&DataValue::Integer(5))
-        );
-    }
+    // CSV → Document 統合テストは converter::csv_to_model::tests および
+    // app 経由の get_document(CSV) で実施する。
 }
