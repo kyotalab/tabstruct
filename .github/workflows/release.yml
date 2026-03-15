@@ -1,0 +1,76 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            suffix: ''
+            archive: tar.gz
+          - os: macos-latest
+            suffix: ''
+            archive: tar.gz
+          - os: windows-latest
+            suffix: .exe
+            archive: zip
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust (stable)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build release
+        run: cargo build --release
+
+      - name: Prepare archive (Unix)
+        if: matrix.archive == 'tar.gz'
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          TARGET=$(rustc -vV | grep host | cut -d' ' -f2)
+          mkdir -p release
+          cp target/release/tabstruct${{ matrix.suffix }} release/
+          tar czvf "tabstruct-${VERSION}-${TARGET}.tar.gz" -C release .
+
+      - name: Prepare archive (Windows)
+        if: matrix.archive == 'zip'
+        run: |
+          $version = "${{ github.ref_name }}"
+          $target = (rustc -vV | Select-String "host:").ToString().Split()[1]
+          New-Item -ItemType Directory -Force -Path release
+          Copy-Item "target/release/tabstruct.exe" release/
+          Compress-Archive -Path release/* -DestinationPath "tabstruct-$version-$target.zip"
+        shell: pwsh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}
+          path: ${{ matrix.archive == 'tar.gz' && 'tabstruct-*.tar.gz' || 'tabstruct-*.zip' }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*/*
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
