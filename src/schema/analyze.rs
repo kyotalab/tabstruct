@@ -1,8 +1,9 @@
 //! Schema 解析: Document から SchemaReport を生成する。
-//! CSV/JSON/YAML いずれも、Document の root が Object または Array であれば対応。
+//! CSV/JSON/YAML いずれも対応。CSV は TypedCsvTable からヘッダ順・列型で schema を生成する。
 
 use crate::error::TabstructError;
-use crate::model::{DataValue, Document, RootType};
+use crate::model::{DataValue, Document, InputFormat, RootType};
+use crate::parser::csv::TypedCsvTable;
 use crate::schema::types::{DisplayType, PrimitiveKind, SchemaField, SchemaReport};
 use std::collections::BTreeMap;
 
@@ -79,7 +80,28 @@ pub fn infer_display_type(values: &[DataValue]) -> DisplayType {
     }
 }
 
-/// Document から SchemaReport を生成する。CSV/JSON/YAML いずれも、root が Object または Array であれば対応。
+/// CSV 専用: TypedCsvTable から SchemaReport を生成する。
+/// ヘッダ順を維持し、列型・nullable は CSV 型推定結果をそのまま使う。Root Type は常に array、Records は行数。
+pub fn analyze_csv(typed: &TypedCsvTable) -> SchemaReport {
+    let fields: Vec<SchemaField> = typed
+        .headers
+        .iter()
+        .zip(typed.column_types.iter())
+        .map(|(path, field_type)| SchemaField {
+            path: path.clone(),
+            field_type: field_type.clone(),
+        })
+        .collect();
+
+    SchemaReport {
+        format: InputFormat::Csv,
+        root_type: RootType::Array,
+        records: typed.rows.len(),
+        fields,
+    }
+}
+
+/// Document から SchemaReport を生成する。JSON/YAML 用。root が Object または Array であれば対応。
 pub fn analyze(doc: &Document) -> Result<SchemaReport, TabstructError> {
     let root_type = match &doc.root {
         DataValue::Object(_) => RootType::Object,
@@ -372,5 +394,130 @@ mod tests {
         let report = analyze(&doc).unwrap();
         let x_field = report.fields.iter().find(|f| f.path == "x").unwrap();
         assert_eq!(x_field.field_type.kind, PrimitiveKind::Mixed);
+    }
+
+    // --- CSV schema 専用テスト（ヘッダ順・型・nullable・Records） ---
+
+    use crate::parser::csv::TypedCsvTable;
+
+    #[test]
+    fn analyze_csv_preserves_header_order() {
+        let typed = TypedCsvTable {
+            headers: vec!["z".to_string(), "a".to_string(), "m".to_string()],
+            column_types: vec![
+                DisplayType {
+                    kind: PrimitiveKind::Integer,
+                    nullable: false,
+                },
+                DisplayType {
+                    kind: PrimitiveKind::String,
+                    nullable: false,
+                },
+                DisplayType {
+                    kind: PrimitiveKind::Boolean,
+                    nullable: false,
+                },
+            ],
+            rows: vec![
+                vec![
+                    DataValue::Integer(1),
+                    DataValue::String("x".into()),
+                    DataValue::Bool(true),
+                ],
+            ],
+        };
+        let report = analyze_csv(&typed);
+        assert_eq!(report.format, InputFormat::Csv);
+        assert_eq!(report.root_type, RootType::Array);
+        assert_eq!(report.records, 1);
+        assert_eq!(report.fields.len(), 3);
+        assert_eq!(report.fields[0].path, "z");
+        assert_eq!(report.fields[1].path, "a");
+        assert_eq!(report.fields[2].path, "m");
+    }
+
+    #[test]
+    fn analyze_csv_nullable_display() {
+        let typed = TypedCsvTable {
+            headers: vec!["id".to_string(), "name".to_string()],
+            column_types: vec![
+                DisplayType {
+                    kind: PrimitiveKind::Integer,
+                    nullable: false,
+                },
+                DisplayType {
+                    kind: PrimitiveKind::String,
+                    nullable: true,
+                },
+            ],
+            rows: vec![
+                vec![DataValue::Integer(1), DataValue::String("a".into())],
+                vec![DataValue::Integer(2), DataValue::Null],
+            ],
+        };
+        let report = analyze_csv(&typed);
+        assert_eq!(report.fields[0].field_type.nullable, false);
+        assert_eq!(report.fields[1].field_type.nullable, true);
+        assert!(report.fields[1].field_type.to_display_str().ends_with('?'));
+    }
+
+    #[test]
+    fn analyze_csv_types_integer_float_string_boolean() {
+        let typed = TypedCsvTable {
+            headers: vec![
+                "id".to_string(),
+                "score".to_string(),
+                "label".to_string(),
+                "enabled".to_string(),
+            ],
+            column_types: vec![
+                DisplayType {
+                    kind: PrimitiveKind::Integer,
+                    nullable: false,
+                },
+                DisplayType {
+                    kind: PrimitiveKind::Float,
+                    nullable: false,
+                },
+                DisplayType {
+                    kind: PrimitiveKind::String,
+                    nullable: false,
+                },
+                DisplayType {
+                    kind: PrimitiveKind::Boolean,
+                    nullable: false,
+                },
+            ],
+            rows: vec![vec![
+                DataValue::Integer(42),
+                DataValue::Float(3.14),
+                DataValue::String("ok".into()),
+                DataValue::Bool(true),
+            ]],
+        };
+        let report = analyze_csv(&typed);
+        assert_eq!(report.fields[0].field_type.kind, PrimitiveKind::Integer);
+        assert_eq!(report.fields[1].field_type.kind, PrimitiveKind::Float);
+        assert_eq!(report.fields[2].field_type.kind, PrimitiveKind::String);
+        assert_eq!(report.fields[3].field_type.kind, PrimitiveKind::Boolean);
+    }
+
+    #[test]
+    fn analyze_csv_records_count() {
+        let typed = TypedCsvTable {
+            headers: vec!["x".to_string()],
+            column_types: vec![DisplayType {
+                kind: PrimitiveKind::Integer,
+                nullable: false,
+            }],
+            rows: vec![
+                vec![DataValue::Integer(1)],
+                vec![DataValue::Integer(2)],
+                vec![DataValue::Integer(3)],
+            ],
+        };
+        let report = analyze_csv(&typed);
+        assert_eq!(report.root_type, RootType::Array);
+        assert_eq!(report.records, 3);
     }
 }
