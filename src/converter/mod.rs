@@ -13,9 +13,7 @@ pub fn convert(doc: &Document, output: OutputType) -> Result<String, TabstructEr
     match output {
         OutputType::Json => model_to_json::document_to_json(doc),
         OutputType::Yaml => model_to_yaml::document_to_yaml(doc),
-        OutputType::Csv => Err(TabstructError::internal(
-            "CSV output is not implemented in this phase; use JSON or YAML",
-        )),
+        OutputType::Csv => model_to_csv::document_to_csv(doc),
     }
 }
 
@@ -53,13 +51,19 @@ mod tests {
     }
 
     #[test]
-    fn convert_csv_returns_error() {
+    fn convert_json_to_csv() {
+        let mut obj = BTreeMap::new();
+        obj.insert("id".to_string(), DataValue::Integer(1));
+        obj.insert("name".to_string(), DataValue::String("x".to_string()));
         let doc = Document {
             format: InputFormat::Json,
-            root: DataValue::Object(BTreeMap::new()),
+            root: DataValue::Object(obj),
         };
-        let err = convert(&doc, OutputType::Csv).unwrap_err();
-        assert!(matches!(err, TabstructError::Internal { .. }));
+        let csv = convert(&doc, OutputType::Csv).unwrap();
+        let lines: Vec<&str> = csv.lines().collect();
+        assert_eq!(lines.len(), 2);
+        assert_eq!(lines[0], "id,name");
+        assert_eq!(lines[1], "1,x");
     }
 }
 
